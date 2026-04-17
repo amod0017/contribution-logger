@@ -1,3 +1,8 @@
 Date,Sprint,Service,Type,Category,Description,Comments_per_PR,Proof_Link
-2026-03-15,Sprint 25,SSAM,Proactive,Technical,Fixed technical debt in primitive models,2,http://jira/TH-452
-2026-03-20,Sprint 25,Lassie,Proactive,Leadership,Led cross-team integration design,0,http://teams/recording
+2026-03-01,Sprint 24,LegacyMonolith,Reactive,Technical Debt,Refactored delayed task transform legacy code,6,https://jira.yourcompany.com/ENG-101
+2026-03-10,Sprint 24,AuthService,Reactive,Unblocking,Debugged OAuth deployment issues for key client,5,https://github.com/your-org/auth/pr/42
+2026-03-15,Sprint 25,DataPipeline,Proactive,Technical Debt,Identified and fixed primitive data model inefficiency,3,https://jira.yourcompany.com/ENG-205
+2026-03-22,Sprint 25,UserDashboard,Proactive,End-User Sync,Initiated feedback session with Frontend Engineers,0,https://confluence.yourcompany.com/notes
+2026-04-05,Sprint 26,PaymentGateway,Proactive,Knowledge Share,Created team walkthrough doc for Stripe integration,0,https://confluence.yourcompany.com/stripe
+2026-04-12,Sprint 26,NotificationService,Proactive,Design Input,Proposed alternate architecture for cross-service API,2,https://github.com/your-org/notifications/pr/88
+2026-04-16,Sprint 27,SearchEngine,Proactive,Unblocking,Acted as point person for junior devs on local setup,1,https://slack.com/archives/
