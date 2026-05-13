@@ -122,12 +122,13 @@ st.divider()
 # --- ROW 3: AI-POWERED PRODUCTIVITY ---
 c5, c6 = st.columns(2)
 
+sprint_order = df.groupby('Sprint')['Date'].min().sort_values().index.tolist()
+
 with c5:
     st.subheader("5. Task Throughput")
-    sprint_order = df.groupby('Sprint')['Date'].min().sort_values().index.tolist()
-    throughput_df = df.copy()
-    throughput_df['AI_Assisted'] = throughput_df['AI_Assisted'].fillna('No')
-    throughput_data = throughput_df.groupby(['Sprint', 'AI_Assisted']).size().reset_index(name='Tasks')
+    throughput_src = filtered_df.copy()
+    throughput_src['AI_Assisted'] = throughput_src['AI_Assisted'].fillna('No')
+    throughput_data = throughput_src.groupby(['Sprint', 'AI_Assisted']).size().reset_index(name='Tasks')
     throughput_data['Sprint'] = pd.Categorical(throughput_data['Sprint'], categories=sprint_order, ordered=True)
     throughput_data = throughput_data.sort_values('Sprint')
     fig_throughput = px.bar(throughput_data, x='Sprint', y='Tasks', color='AI_Assisted',
@@ -140,22 +141,26 @@ with c5:
 
 with c6:
     st.subheader("6. AI Acceleration Ratio")
-    ai_df = df.copy()
-    ai_df['AI_Assisted'] = ai_df['AI_Assisted'].fillna('No')
+    # Trend line always uses full df for context; KPIs reflect the selected sprint view
+    ai_full = df.copy()
+    ai_full['AI_Assisted'] = ai_full['AI_Assisted'].fillna('No')
     sprint_ai = (
-        ai_df.groupby('Sprint')
+        ai_full.groupby('Sprint')
         .apply(lambda x: round((x['AI_Assisted'] == 'Yes').sum() / len(x) * 100, 1))
         .reset_index(name='AI_Pct')
     )
     sprint_ai['Sprint'] = pd.Categorical(sprint_ai['Sprint'], categories=sprint_order, ordered=True)
     sprint_ai = sprint_ai.sort_values('Sprint')
 
-    current_pct = sprint_ai.iloc[-1]['AI_Pct']
+    # KPIs: use selected sprint if filtered, otherwise most recent sprint
+    ai_filtered = filtered_df.copy()
+    ai_filtered['AI_Assisted'] = ai_filtered['AI_Assisted'].fillna('No')
+    kpi_pct = round((ai_filtered['AI_Assisted'] == 'Yes').sum() / max(len(ai_filtered), 1) * 100, 1)
     earliest_pct = sprint_ai.iloc[0]['AI_Pct']
-    growth = f"↑{current_pct / earliest_pct:.1f}x" if earliest_pct > 0 else "N/A"
+    growth = f"↑{kpi_pct / earliest_pct:.1f}x" if earliest_pct > 0 else "N/A"
 
     m1, m2 = st.columns(2)
-    m1.metric("AI-Assisted This Sprint", f"{current_pct:.0f}%")
+    m1.metric("AI-Assisted This Sprint", f"{kpi_pct:.0f}%")
     m2.metric("Adoption Growth", growth)
 
     fig_ai_ratio = px.line(sprint_ai, x='Sprint', y='AI_Pct', markers=True,
