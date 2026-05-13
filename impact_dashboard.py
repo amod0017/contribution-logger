@@ -28,10 +28,10 @@ with st.sidebar:
     st.header("📂 Sprint Filter")
     try:
         df_temp = pd.read_csv('sprint_data.csv')
-        sprint_list = ["All Time"] + sorted(list(df_temp['Sprint'].unique()), reverse=True)
-        selected_sprint = st.selectbox("Select Audit View", sprint_list)
+        sprint_list = sorted(list(df_temp['Sprint'].unique()), reverse=True)
+        selected_sprints = st.multiselect("Select Sprints", sprint_list, placeholder="All Time")
     except:
-        selected_sprint = "All Time"
+        selected_sprints = []
 
 # --- GENERIC DATA LOADER ---
 @st.cache_data
@@ -50,7 +50,7 @@ if df is None:
     st.stop()
 
 # Filter data based on sidebar
-filtered_df = df if selected_sprint == "All Time" else df[df['Sprint'] == selected_sprint]
+filtered_df = df if not selected_sprints else df[df['Sprint'].isin(selected_sprints)]
 
 # --- DYNAMIC HEADER ---
 col_h1, col_h2 = st.columns([3, 1])
@@ -173,7 +173,8 @@ with c6:
 st.divider()
 
 # --- ROW 4: THE AUDIT TRAIL ---
-st.subheader(f"🔍 The Sprint Audit Trail: {selected_sprint}")
+audit_label = ", ".join(selected_sprints) if selected_sprints else "All Time"
+st.subheader(f"🔍 The Sprint Audit Trail: {audit_label}")
 st.markdown("Detailed record of accomplishments. Use links for undeniable proof.")
 
 # Render dataframe with clickable links
