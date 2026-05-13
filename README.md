@@ -22,7 +22,7 @@ pip install streamlit pandas plotly
 streamlit run impact_dashboard.py
 ```
 
-Opens at `http://localhost:8501`. Press `R` to reload after editing `sprint_data.csv`.
+Opens at `http://localhost:8501`. New entries logged via the in-app form reload the dashboard automatically.
 
 ---
 
@@ -74,6 +74,15 @@ The Ownership Heatmap, Refinement Trend, and AI panels always render the full ti
 | Engineer Name / Role | Personalizes the header — useful when exporting for a review |
 | Sprint Filter | Multi-select; leave empty for an all-time view |
 | Export as PDF | Triggers the browser print dialog — use Save as PDF for a portable report |
+| Theme | Toggle between dark mode and a warm light mode |
+
+---
+
+## Logging Entries
+
+Expand **Log New Entry** at the bottom of the dashboard to add a task without touching the CSV. All fields are available in a two-column form. Required fields: Date, Sprint, Service, Type, and Description. On save, the dashboard reloads immediately and all charts update.
+
+You can also edit `sprint_data.csv` directly for bulk updates or corrections — press `R` in the browser to reload after manual edits.
 
 ---
 
