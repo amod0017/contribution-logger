@@ -28,10 +28,10 @@ with st.sidebar:
     st.header("📂 Sprint Filter")
     try:
         df_temp = pd.read_csv('sprint_data.csv')
-        sprint_list = ["All Time"] + sorted(list(df_temp['Sprint'].unique()), reverse=True)
-        selected_sprint = st.selectbox("Select Audit View", sprint_list)
+        sprint_list = sorted(list(df_temp['Sprint'].unique()), reverse=True)
+        selected_sprints = st.multiselect("Select Sprints", sprint_list, placeholder="All Time")
     except:
-        selected_sprint = "All Time"
+        selected_sprints = []
 
 # --- GENERIC DATA LOADER ---
 @st.cache_data
@@ -50,7 +50,7 @@ if df is None:
     st.stop()
 
 # Filter data based on sidebar
-filtered_df = df if selected_sprint == "All Time" else df[df['Sprint'] == selected_sprint]
+filtered_df = df if not selected_sprints else df[df['Sprint'].isin(selected_sprints)]
 
 # --- DYNAMIC HEADER ---
 col_h1, col_h2 = st.columns([3, 1])
@@ -119,8 +119,61 @@ with c4:
 
 st.divider()
 
-# --- ROW 3: THE AUDIT TRAIL ---
-st.subheader(f"🔍 The Sprint Audit Trail: {selected_sprint}")
+# --- ROW 3: AI-POWERED PRODUCTIVITY ---
+c5, c6 = st.columns(2)
+
+sprint_order = df.groupby('Sprint')['Date'].min().sort_values().index.tolist()
+
+with c5:
+    st.subheader("5. Task Throughput")
+    throughput_src = filtered_df.copy()
+    throughput_src['AI_Assisted'] = throughput_src['AI_Assisted'].fillna('No')
+    throughput_data = throughput_src.groupby(['Sprint', 'AI_Assisted']).size().reset_index(name='Tasks')
+    throughput_data['Sprint'] = pd.Categorical(throughput_data['Sprint'], categories=sprint_order, ordered=True)
+    throughput_data = throughput_data.sort_values('Sprint')
+    fig_throughput = px.bar(throughput_data, x='Sprint', y='Tasks', color='AI_Assisted',
+                            color_discrete_map={'Yes': '#3fb950', 'No': '#30363d'},
+                            barmode='stack')
+    fig_throughput.update_layout(margin=dict(t=10, l=10, r=10, b=10), paper_bgcolor="rgba(0,0,0,0)",
+                                 legend_title_text='AI Assisted')
+    st.plotly_chart(fig_throughput, use_container_width=True)
+    st.caption("Goal: green share and total bar height grow together over time.")
+
+with c6:
+    st.subheader("6. AI Acceleration Ratio")
+    # Trend line always uses full df for context; KPIs reflect the selected sprint view
+    ai_full = df.copy()
+    ai_full['AI_Assisted'] = ai_full['AI_Assisted'].fillna('No')
+    sprint_ai = (
+        ai_full.groupby('Sprint')
+        .apply(lambda x: round((x['AI_Assisted'] == 'Yes').sum() / len(x) * 100, 1))
+        .reset_index(name='AI_Pct')
+    )
+    sprint_ai['Sprint'] = pd.Categorical(sprint_ai['Sprint'], categories=sprint_order, ordered=True)
+    sprint_ai = sprint_ai.sort_values('Sprint')
+
+    # KPIs: use selected sprint/filter for % metric; full df for total count
+    ai_filtered = filtered_df.copy()
+    ai_filtered['AI_Assisted'] = ai_filtered['AI_Assisted'].fillna('No')
+    kpi_pct = round((ai_filtered['AI_Assisted'] == 'Yes').sum() / max(len(ai_filtered), 1) * 100, 1)
+    total_ai_tasks = int((ai_full['AI_Assisted'] == 'Yes').sum())
+
+    m1, m2 = st.columns(2)
+    m1.metric("AI-Assisted", f"{kpi_pct:.0f}%")
+    m2.metric("Total AI Tasks", total_ai_tasks)
+
+    fig_ai_ratio = px.line(sprint_ai, x='Sprint', y='AI_Pct', markers=True,
+                           line_shape='spline', color_discrete_sequence=['#3fb950'])
+    fig_ai_ratio.update_layout(margin=dict(t=10, l=10, r=10, b=10), paper_bgcolor="rgba(0,0,0,0)",
+                                yaxis_title="% AI-Assisted", yaxis_range=[0, 100])
+    st.plotly_chart(fig_ai_ratio, use_container_width=True)
+    st.caption("Goal: line climbs — deliberate AI adoption over time.")
+
+st.divider()
+
+# --- ROW 4: THE AUDIT TRAIL ---
+audit_label = ", ".join(selected_sprints) if selected_sprints else "All Time"
+st.subheader(f"🔍 The Sprint Audit Trail: {audit_label}")
 st.markdown("Detailed record of accomplishments. Use links for undeniable proof.")
 
 # Render dataframe with clickable links
