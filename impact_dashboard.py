@@ -152,16 +152,15 @@ with c6:
     sprint_ai['Sprint'] = pd.Categorical(sprint_ai['Sprint'], categories=sprint_order, ordered=True)
     sprint_ai = sprint_ai.sort_values('Sprint')
 
-    # KPIs: use selected sprint if filtered, otherwise most recent sprint
+    # KPIs: use selected sprint/filter for % metric; full df for total count
     ai_filtered = filtered_df.copy()
     ai_filtered['AI_Assisted'] = ai_filtered['AI_Assisted'].fillna('No')
     kpi_pct = round((ai_filtered['AI_Assisted'] == 'Yes').sum() / max(len(ai_filtered), 1) * 100, 1)
-    earliest_pct = sprint_ai.iloc[0]['AI_Pct']
-    growth = f"↑{kpi_pct / earliest_pct:.1f}x" if earliest_pct > 0 else "N/A"
+    total_ai_tasks = int((ai_full['AI_Assisted'] == 'Yes').sum())
 
     m1, m2 = st.columns(2)
-    m1.metric("AI-Assisted This Sprint", f"{kpi_pct:.0f}%")
-    m2.metric("Adoption Growth", growth)
+    m1.metric("AI-Assisted", f"{kpi_pct:.0f}%")
+    m2.metric("Total AI Tasks", total_ai_tasks)
 
     fig_ai_ratio = px.line(sprint_ai, x='Sprint', y='AI_Pct', markers=True,
                            line_shape='spline', color_discrete_sequence=['#3fb950'])
