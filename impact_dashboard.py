@@ -33,6 +33,9 @@ with st.sidebar:
     except:
         selected_sprints = []
 
+    st.divider()
+    st.markdown('<button onclick="window.print()">🖨️ Export as PDF</button>', unsafe_allow_html=True)
+
 # --- GENERIC DATA LOADER ---
 @st.cache_data
 def load_data():
@@ -53,13 +56,20 @@ if df is None:
 filtered_df = df if not selected_sprints else df[df['Sprint'].isin(selected_sprints)]
 
 # --- DYNAMIC HEADER ---
-col_h1, col_h2 = st.columns([3, 1])
+col_h1, col_h2, col_h3, col_h4 = st.columns([3, 1, 1, 1])
 with col_h1:
     st.title(f"🚀 {user_display_name}'s Value Dashboard")
     st.markdown(f"**{user_role}** | Focused on Proactive System Integration & Ownership")
 with col_h2:
-    proactive_count = len(filtered_df[filtered_df['Type'] == 'Proactive'])
-    st.metric("Self-Identified (Proactive) Wins", f"{proactive_count}", help="Tasks you initiated independently")
+    total = max(len(filtered_df), 1)
+    proactive_pct = round(len(filtered_df[filtered_df['Type'] == 'Proactive']) / total * 100)
+    st.metric("Proactive", f"{proactive_pct}%", help="% of tasks self-identified")
+with col_h3:
+    ai_pct = round((filtered_df['AI_Assisted'].fillna('No') == 'Yes').sum() / total * 100)
+    st.metric("AI Adoption", f"{ai_pct}%", help="% of tasks AI-assisted")
+with col_h4:
+    services = filtered_df['Service'].nunique()
+    st.metric("Services Touched", services, help="Unique services contributed to")
 
 st.divider()
 
@@ -96,7 +106,7 @@ with c3:
     st.subheader("3. Voice & Influence Radar")
     # Soft skills tracking
     cat_counts = filtered_df['Category'].value_counts().to_dict()
-    radar_cats = ['Design Input', 'Knowledge Share', 'End-User Sync', 'Unblocking', 'Technical Debt']
+    radar_cats = sorted(filtered_df['Category'].dropna().unique().tolist())
     values = [cat_counts.get(c, 0) for c in radar_cats]
     
     fig_radar = go.Figure(data=go.Scatterpolar(
